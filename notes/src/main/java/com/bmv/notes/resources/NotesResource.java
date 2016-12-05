@@ -44,6 +44,7 @@ public class NotesResource {
     }
     
     /**
+     * @param noteId id of note to be retrieved
      * @return Note a note by id 
      */
     @GET
@@ -55,8 +56,9 @@ public class NotesResource {
     }
     
     /**
+     * @param jsonData note data in json format
      * @return Response
-     * @throws URISyntaxException 
+     * @throws URISyntaxException exception on URI instantiation
      */
     @POST
     public Response createNote(String jsonData) throws URISyntaxException {
@@ -66,6 +68,8 @@ public class NotesResource {
     } 
     
     /**
+     * @param noteId id of note to be updated
+     * @param jsonData note data in json format
      * @return Response
      */
     @PUT 
@@ -76,6 +80,7 @@ public class NotesResource {
     }
     
     /**
+     * @param noteId id of note to be deleted
      * @return Response delete a note by id 
      */
     @DELETE 
