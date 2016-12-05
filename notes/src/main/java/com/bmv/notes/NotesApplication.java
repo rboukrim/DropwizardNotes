@@ -1,5 +1,7 @@
 package com.bmv.notes;
 
+import com.bmv.notes.resources.NotesResource;
+
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -23,7 +25,9 @@ public class NotesApplication extends Application<NotesConfiguration> {
     @Override
     public void run(final NotesConfiguration configuration,
                     final Environment environment) {
-        // TODO: implement application
+        
+        // Add the notes resource to the environment
+        environment.jersey().register(new NotesResource());
     }
 
 }
