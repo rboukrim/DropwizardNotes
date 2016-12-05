@@ -1,7 +1,11 @@
 package com.bmv.notes.resources;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -19,9 +23,11 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.skife.jdbi.v2.DBI;
 
 import com.bmv.notes.db.NoteDAO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.bmv.notes.core.Note;
 import com.bmv.notes.core.User;
 
@@ -43,6 +49,7 @@ public class NotesResource {
      */
     private static final String NOTE_NOT_FOUND = "Note not found";
     private static final String FORBIDDEN_ACCESS = "Access denied to this note";
+    private static final String WRONG_DATA_FORMAT = "Wrong data format";
 
     /**
      * DAO to manipulate notes.
@@ -86,9 +93,12 @@ public class NotesResource {
      */
     @POST
     public Response createNote(String jsonData, @Auth User user) throws URISyntaxException {
-    	//TODO: implement Basic Authentication to get user and user id
-    	//TODO: map jsonData to Note object and insert the note in DB
-    	int newNoteId = 30;
+    	Note note = new Note();
+    	
+    	// Update note data
+    	note = mapJsonToNoteObject(jsonData, note);
+    	//TODO: data validation before insert in DB
+    	int newNoteId = this.noteDAO.create(note, user.getId());
     	return Response.created( new URI( String.valueOf(newNoteId) ) ).build();
     } 
     
@@ -101,9 +111,12 @@ public class NotesResource {
     @Path("/{noteId}")
     public Response updateNote(@PathParam("noteId") IntParam noteId, String jsonData, @Auth User user) { 
     	Note note = getNoteOrThrowException(noteId, user);
-    	//TODO: map jsonData to Note object and insert the note in DB
-    	//this.noteDAO.save(new Note());
-    	return Response.ok().build();
+    	
+    	// Update note data
+    	note = mapJsonToNoteObject(jsonData, note);
+    	//TODO: data validation before update in DB
+        noteDAO.save(note);
+        return Response.ok().build();
     }
     
     /**
@@ -136,5 +149,41 @@ public class NotesResource {
     	}
        
         return note.get();
+    }
+    
+    /**
+     * Method updates note object with data in Json string
+     * throws 403 ForbiddenException  otherwise.
+     *
+     * @param jsonData json string
+     * @param note note object
+     * @return note
+     */
+	private Note mapJsonToNoteObject(String jsonData, Note note) {
+        Map<String, String> changeMap = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+			changeMap = objectMapper.readValue(jsonData, HashMap.class);
+			purgeMap(changeMap);
+			BeanUtils.populate(note, changeMap);
+        } catch (IOException | IllegalAccessException | InvocationTargetException e) {
+            		throw new WebApplicationException(WRONG_DATA_FORMAT, e, Response.Status.BAD_REQUEST);
+    	} finally {
+            if (changeMap != null) {
+                changeMap.clear();
+            }
+    	}
+		return note;
+	}
+	
+    /**
+     * A method to remove null values (for unset fields) from the change map. Necessary
+     * if not all fields in the changed object are filled.
+     *
+     * @param changeMap map of object field values.
+     */
+    private void purgeMap(final Map<String, String> changeMap) {
+        changeMap.remove("id");
+        changeMap.entrySet().removeIf(  entry -> entry.getValue().equals(null) );
     }
 }
