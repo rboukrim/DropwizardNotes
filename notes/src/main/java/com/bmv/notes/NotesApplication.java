@@ -19,7 +19,7 @@ import io.dropwizard.setup.Environment;
 public class NotesApplication extends Application<NotesConfiguration> {
 
     public static void main(final String[] args) throws Exception {
-        new NotesApplication().run(new String[] {"server", "config.yml"});
+        new NotesApplication().run(args);
     }
 
     @Override
