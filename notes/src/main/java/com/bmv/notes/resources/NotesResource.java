@@ -19,6 +19,9 @@ import org.skife.jdbi.v2.DBI;
 
 import com.bmv.notes.db.NoteDAO;
 import com.bmv.notes.core.Note;
+import com.bmv.notes.core.User;
+
+import io.dropwizard.auth.Auth;
 import io.dropwizard.jersey.params.IntParam;
 
 /**
@@ -49,10 +52,10 @@ public class NotesResource {
      * @return Set<Note> Set of all notes
      */
     @GET
-    public Set<Note> getNotes() { 
-    	//TODO: implement Basic Authentication to get user and user id
-    	this.noteDAO.findByUserId(1);
-    	return null;
+    public Set<Note> getNotes(@Auth User user) { 
+    	Set<Note> notes = this.noteDAO.findByUserId(user.getId());
+    	user.setNotes(notes);
+    	return notes;
     }
     
     /**
@@ -61,7 +64,7 @@ public class NotesResource {
      */
     @GET
     @Path("/{noteId}")
-    public Response getNote(@PathParam("noteId") IntParam noteId) {
+    public Response getNote(@PathParam("noteId") IntParam noteId, @Auth User user) {
     	//TODO: implement Basic Authentication to get user and user id
     	this.noteDAO.findById(noteId.get());
     	Note note = new Note();
@@ -74,11 +77,11 @@ public class NotesResource {
      * @throws URISyntaxException exception on URI instantiation
      */
     @POST
-    public Response createNote(String jsonData) throws URISyntaxException {
+    public Response createNote(String jsonData, @Auth User user) throws URISyntaxException {
     	//TODO: implement Basic Authentication to get user and user id
     	//TODO: map jsonData to Note object and insert the note in DB
     	int newNoteId = 30;
-    	return Response.created(new URI( String.valueOf(newNoteId) ) ).build();
+    	return Response.created( new URI( String.valueOf(newNoteId) ) ).build();
     } 
     
     /**
@@ -88,7 +91,7 @@ public class NotesResource {
      */
     @PUT 
     @Path("/{noteId}")
-    public Response updateNote(@PathParam("noteId") IntParam noteId, String jsonData) { 
+    public Response updateNote(@PathParam("noteId") IntParam noteId, String jsonData, @Auth User user) { 
     	//TODO: implement Basic Authentication to get user and user id
     	//TODO: map jsonData to Note object and insert the note in DB
     	//this.noteDAO.save(new Note());
@@ -101,7 +104,7 @@ public class NotesResource {
      */
     @DELETE 
     @Path("/{noteId}")
-    public Response deleteNote(@PathParam("noteId") IntParam noteId) {
+    public Response deleteNote(@PathParam("noteId") IntParam noteId, @Auth User user) {
     	//TODO: implement Basic Authentication to get user and user id
     	this.noteDAO.delete(noteId.get());
     	return Response.noContent().build();
