@@ -2,3 +2,9 @@ logging:
   level: INFO
   loggers:
     com.bmv: DEBUG
+
+database:  
+  driverClass: com.mysql.jdbc.Driver
+  user: root
+  password: pass
+  url: jdbc:mysql://localhost:3306/NotesDB
