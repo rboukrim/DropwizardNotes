@@ -1,5 +1,6 @@
 package com.bmv.notes.core;
 
+import java.security.Principal;
 import java.util.Set;
 
 import javax.validation.constraints.NotNull;
@@ -12,7 +13,7 @@ import org.hibernate.validator.constraints.Length;
  * @author rboukrim
  */
 
-public class User {
+public class User implements Principal {
     
     /*********** private fields ******************/ 
     private Integer id;
@@ -87,4 +88,14 @@ public class User {
                 + ", notes=" + notes
                 + '}';
     }
+    
+    /**
+     * Method implementation from Principal interface.
+     *
+     * @return The name of the Principal.
+     */
+	@Override
+	public String getName() {
+		return email;
+	}
 }
