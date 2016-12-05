@@ -46,7 +46,7 @@ public interface NoteDAO {
 	@GetGeneratedKeys
 	int create(@BindBean("s") Note note, @Bind("user_id") int user_id);
 	
-	@SqlUpdate("UPDATE notes SET title = :title, note = :note WHERE id")
+	@SqlUpdate("UPDATE notes SET title = :title, note = :note WHERE id = :id")
 	int save(@BindBean Note note);
 	
 	@SqlUpdate("DELETE FROM notes WHERE id = :id")
