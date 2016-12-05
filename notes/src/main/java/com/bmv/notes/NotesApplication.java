@@ -62,7 +62,7 @@ public class NotesApplication extends Application<NotesConfiguration> {
         environment.jersey().register( new AuthValueFactoryProvider.Binder<>(User.class) );
         
         // Add the notes resource to the environment
-        environment.jersey().register(new NotesResource(jdbi));
+        environment.jersey().register(new NotesResource(jdbi, environment.getValidator()));
     }
 
 }

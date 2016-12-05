@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.ForbiddenException;
@@ -57,12 +60,19 @@ public class NotesResource {
     private final NoteDAO noteDAO;
     
     /**
+     * Hibernate Validator to validate note data
+     */
+    private final Validator validator;
+
+    
+    /**
      * Constructor to initialize DAO.
      *
      * @param noteDAO DAO to manipulate notes.
      */
-    public NotesResource(final DBI jdbi) {
+    public NotesResource(final DBI jdbi, final  Validator validator) {
         this.noteDAO = jdbi.onDemand(NoteDAO.class);
+        this.validator = validator;
     }
 
     /**
@@ -97,9 +107,22 @@ public class NotesResource {
     	
     	// Update note data
     	note = mapJsonToNoteObject(jsonData, note);
-    	//TODO: data validation before insert in DB
-    	int newNoteId = this.noteDAO.create(note, user.getId());
-    	return Response.created( new URI( String.valueOf(newNoteId) ) ).build();
+        
+        // Validate the note's data
+        Set<ConstraintViolation<Note>> violations = validator.validate(note);
+        
+        // Are there any constraint violations?
+        if (violations.size() > 0) {
+        	// Validation errors occurred. get formatted validation messages
+        	ArrayList<String> validationMessages = getValidationMessages(violations);
+        	// Return Response with validation messages
+        	return Response.status(Response.Status.BAD_REQUEST).entity(validationMessages).build();
+        } else {
+        	// OK, no validation errors
+        	// Store the new note
+        	int newNoteId = this.noteDAO.create(note, user.getId());
+        	return Response.created( new URI( String.valueOf(newNoteId) ) ).build();
+        }
     } 
     
     /**
@@ -114,9 +137,21 @@ public class NotesResource {
     	
     	// Update note data
     	note = mapJsonToNoteObject(jsonData, note);
-    	//TODO: data validation before update in DB
-        noteDAO.save(note);
-        return Response.ok().build();
+     
+        // Validate the note's data
+        Set<ConstraintViolation<Note>> violations = validator.validate(note);
+        // Are there any constraint violations?
+        if (violations.size() > 0) {
+        	// Validation errors occurred. get formatted validation messages
+        	ArrayList<String> validationMessages = getValidationMessages(violations);
+        	// Return Response with validation messages
+        	return Response.status(Response.Status.BAD_REQUEST).entity(validationMessages).build();
+        } else {
+        	// OK, no validation errors
+        	// Save note
+        	noteDAO.save(note);
+            return Response.ok().build();
+        } 
     }
     
     /**
@@ -152,7 +187,7 @@ public class NotesResource {
     }
     
     /**
-     * Method updates note object with data in Json string
+     * Method updates note object with data in JSON string
      * throws 403 ForbiddenException  otherwise.
      *
      * @param jsonData json string
@@ -185,5 +220,20 @@ public class NotesResource {
     private void purgeMap(final Map<String, String> changeMap) {
         changeMap.remove("id");
         changeMap.entrySet().removeIf(  entry -> entry.getValue().equals(null) );
+    }
+    
+    /**
+     * A method to return a list of formatted validation messages.
+     *
+     * @param violations 
+     * @return ArrayList of validation messages
+     */
+    private ArrayList<String> getValidationMessages(Set<ConstraintViolation<Note>> violations) {
+    	// Validation errors occurred
+    	ArrayList<String> validationMessages = new ArrayList<String>();
+    	for (ConstraintViolation<Note> violation : violations) {
+    		validationMessages.add(violation.getPropertyPath().toString() + ":" + violation.getMessage());
+    	}
+    	return validationMessages;
     }
 }
