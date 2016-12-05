@@ -2,16 +2,20 @@ package com.bmv.notes.resources;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -33,6 +37,12 @@ import io.dropwizard.jersey.params.IntParam;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class NotesResource {
+	
+	/**
+     * Error messages - COnstancts
+     */
+    private static final String NOTE_NOT_FOUND = "Note not found";
+    private static final String FORBIDDEN_ACCESS = "Access denied to this note";
 
     /**
      * DAO to manipulate notes.
@@ -65,9 +75,7 @@ public class NotesResource {
     @GET
     @Path("/{noteId}")
     public Response getNote(@PathParam("noteId") IntParam noteId, @Auth User user) {
-    	//TODO: implement Basic Authentication to get user and user id
-    	this.noteDAO.findById(noteId.get());
-    	Note note = new Note();
+    	Note note = getNoteOrThrowException(noteId, user);
     	return Response.ok(note).build();
     }
     
@@ -92,7 +100,7 @@ public class NotesResource {
     @PUT 
     @Path("/{noteId}")
     public Response updateNote(@PathParam("noteId") IntParam noteId, String jsonData, @Auth User user) { 
-    	//TODO: implement Basic Authentication to get user and user id
+    	Note note = getNoteOrThrowException(noteId, user);
     	//TODO: map jsonData to Note object and insert the note in DB
     	//this.noteDAO.save(new Note());
     	return Response.ok().build();
@@ -105,8 +113,28 @@ public class NotesResource {
     @DELETE 
     @Path("/{noteId}")
     public Response deleteNote(@PathParam("noteId") IntParam noteId, @Auth User user) {
-    	//TODO: implement Basic Authentication to get user and user id
-    	this.noteDAO.delete(noteId.get());
+    	getNoteOrThrowException(noteId, user);
+    	noteDAO.delete(noteId.get());
     	return Response.noContent().build();
+    }
+    
+    
+    /**
+     * Method gets note by id and checks if the authenticated user is the owner of the note.
+     * It returns the note or throws 403 ForbiddenException otherwise.
+     *
+     * @param id the id of a note.
+     * @param user the id of the user.
+     * @return note
+     */
+    private Note getNoteOrThrowException(IntParam id, @Auth User user) {        
+    	Optional<Note> note = Optional.ofNullable( this.noteDAO.findById( id.get()) );
+    	if ( !note.isPresent() ) {
+    		throw new WebApplicationException(NOTE_NOT_FOUND, new NotFoundException(), Response.Status.NOT_FOUND);
+    	} else if ( note.get().getUserId() != user.getId() ) {
+            throw new WebApplicationException(FORBIDDEN_ACCESS, new ForbiddenException(), Response.Status.FORBIDDEN);
+    	}
+       
+        return note.get();
     }
 }
