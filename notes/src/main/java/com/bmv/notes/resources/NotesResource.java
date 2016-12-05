@@ -15,6 +15,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.skife.jdbi.v2.DBI;
+
+import com.bmv.notes.db.NoteDAO;
 import com.bmv.notes.core.Note;
 import io.dropwizard.jersey.params.IntParam;
 
@@ -29,10 +32,17 @@ import io.dropwizard.jersey.params.IntParam;
 public class NotesResource {
 
     /**
-     * Constructor 
+     * DAO to manipulate notes.
      */
-    public NotesResource() {
-
+    private final NoteDAO noteDAO;
+    
+    /**
+     * Constructor to initialize DAO.
+     *
+     * @param noteDAO DAO to manipulate notes.
+     */
+    public NotesResource(final DBI jdbi) {
+        this.noteDAO = jdbi.onDemand(NoteDAO.class);
     }
 
     /**
@@ -40,6 +50,8 @@ public class NotesResource {
      */
     @GET
     public Set<Note> getNotes() { 
+    	//TODO: implement Basic Authentication to get user and user id
+    	this.noteDAO.findByUserId(1);
     	return null;
     }
     
@@ -50,7 +62,8 @@ public class NotesResource {
     @GET
     @Path("/{noteId}")
     public Response getNote(@PathParam("noteId") IntParam noteId) {
-    	//TODO: implement
+    	//TODO: implement Basic Authentication to get user and user id
+    	this.noteDAO.findById(noteId.get());
     	Note note = new Note();
     	return Response.ok(note).build();
     }
@@ -62,8 +75,9 @@ public class NotesResource {
      */
     @POST
     public Response createNote(String jsonData) throws URISyntaxException {
-    	//TODO: implement
-    	int newNoteId = 30; //for testing only
+    	//TODO: implement Basic Authentication to get user and user id
+    	//TODO: map jsonData to Note object and insert the note in DB
+    	int newNoteId = 30;
     	return Response.created(new URI( String.valueOf(newNoteId) ) ).build();
     } 
     
@@ -74,8 +88,10 @@ public class NotesResource {
      */
     @PUT 
     @Path("/{noteId}")
-    public Response updateNote(@PathParam("noteId") IntParam noteId, String jsonData) {   
-    	//TODO: implement
+    public Response updateNote(@PathParam("noteId") IntParam noteId, String jsonData) { 
+    	//TODO: implement Basic Authentication to get user and user id
+    	//TODO: map jsonData to Note object and insert the note in DB
+    	//this.noteDAO.save(new Note());
     	return Response.ok().build();
     }
     
@@ -86,7 +102,8 @@ public class NotesResource {
     @DELETE 
     @Path("/{noteId}")
     public Response deleteNote(@PathParam("noteId") IntParam noteId) {
-    	//TODO: implement
+    	//TODO: implement Basic Authentication to get user and user id
+    	this.noteDAO.delete(noteId.get());
     	return Response.noContent().build();
     }
 }

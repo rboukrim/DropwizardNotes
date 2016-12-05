@@ -34,7 +34,7 @@ public class NotesApplication extends Application<NotesConfiguration> {
         final DBI jdbi = factory.build(environment, configuration.getDataSourceFactory(), "mysql");
         
         // Add the notes resource to the environment
-        environment.jersey().register(new NotesResource());
+        environment.jersey().register(new NotesResource(jdbi));
     }
 
 }
