@@ -5,6 +5,7 @@ import org.skife.jdbi.v2.DBI;
 
 import com.bmv.notes.auth.DBAuthenticator;
 import com.bmv.notes.core.User;
+import com.bmv.notes.db.NoteDAO;
 import com.bmv.notes.resources.NotesResource;
 
 import io.dropwizard.Application;
@@ -61,8 +62,10 @@ public class NotesApplication extends Application<NotesConfiguration> {
         //Necessary if @Auth is used to inject a custom Principal type into resource
         environment.jersey().register( new AuthValueFactoryProvider.Binder<>(User.class) );
         
+        
+        NoteDAO noteDAO = jdbi.onDemand(NoteDAO.class); 
         // Add the notes resource to the environment
-        environment.jersey().register(new NotesResource(jdbi, environment.getValidator()));
+        environment.jersey().register(new NotesResource(noteDAO, environment.getValidator()));
     }
 
 }

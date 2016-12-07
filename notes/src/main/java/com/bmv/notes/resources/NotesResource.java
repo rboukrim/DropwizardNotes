@@ -70,8 +70,8 @@ public class NotesResource {
      *
      * @param noteDAO DAO to manipulate notes.
      */
-    public NotesResource(final DBI jdbi, final  Validator validator) {
-        this.noteDAO = jdbi.onDemand(NoteDAO.class);
+    public NotesResource(final NoteDAO noteDAO, final  Validator validator) {
+        this.noteDAO = noteDAO;
         this.validator = validator;
     }
 

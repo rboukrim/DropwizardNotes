@@ -18,17 +18,6 @@ import com.bmv.notes.core.mapper.NoteMapper;
  * @author rboukrim
  */
 public interface NoteDAO {
-	@SqlUpdate("CREATE TABLE IF NOT EXISTS `notes` ("
-			+ " `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,"
-			+ " `title` varchar(50) NOT NULL,"
-			+ " `note` varchar(1000) DEFAULT NULL,"
-			+ " `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-			+ " `last_update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
-			+ " `user_id` int(11) NOT NULL"
-			+ " PRIMARY KEY (`id`),"
-			+ " FOREIGN KEY(`user_id`) REFERENCES users(`id`) )"
-		)
-	void createNotesTable();
 	
 	@RegisterMapper(NoteMapper.class)
 	@SqlQuery("SELECT * FROM notes WHERE user_id = :user_id")
