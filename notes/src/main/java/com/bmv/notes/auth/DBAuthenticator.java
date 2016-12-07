@@ -6,8 +6,6 @@ import io.dropwizard.auth.basic.BasicCredentials;
 
 import java.util.Optional;
 
-import org.skife.jdbi.v2.DBI;
-
 import com.bmv.notes.core.User;
 import com.bmv.notes.db.UserDAO;
 
@@ -30,8 +28,8 @@ public class DBAuthenticator implements Authenticator<BasicCredentials, User> {
      * @param jdbi
      * database authentication doesn't work as described in documentation.
      */
-    public DBAuthenticator(final DBI jdbi) {
-        this.userDAO = jdbi.onDemand(UserDAO.class);
+    public DBAuthenticator(final UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     /**

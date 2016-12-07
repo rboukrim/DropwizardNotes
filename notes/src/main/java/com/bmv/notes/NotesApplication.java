@@ -6,6 +6,7 @@ import org.skife.jdbi.v2.DBI;
 import com.bmv.notes.auth.DBAuthenticator;
 import com.bmv.notes.core.User;
 import com.bmv.notes.db.NoteDAO;
+import com.bmv.notes.db.UserDAO;
 import com.bmv.notes.resources.NotesResource;
 
 import io.dropwizard.Application;
@@ -41,8 +42,9 @@ public class NotesApplication extends Application<NotesConfiguration> {
     	final DBIFactory factory = new DBIFactory();
         final DBI jdbi = factory.build(environment, configuration.getDataSourceFactory(), "mysql");
         
+        UserDAO userDAO = jdbi.onDemand(UserDAO.class);
         // Register DB authenticator to check user's credentials against users table in the database
-        DBAuthenticator authenticator = new DBAuthenticator(jdbi);
+        DBAuthenticator authenticator = new DBAuthenticator(userDAO);
         environment.jersey().register(
         		new AuthDynamicFeature(
 	                new BasicCredentialAuthFilter.Builder<User>()
