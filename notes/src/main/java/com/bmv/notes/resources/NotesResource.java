@@ -27,7 +27,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.skife.jdbi.v2.DBI;
 
 import com.bmv.notes.db.NoteDAO;
 import com.fasterxml.jackson.databind.ObjectMapper;
